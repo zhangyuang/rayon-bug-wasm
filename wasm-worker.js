@@ -6,11 +6,10 @@ function wrapExports({ generate }) {
   return () => {
     const start = performance.now();
     const data = generate();
-    console.log(data)
     const time = performance.now() - start;
     return {
       // Little perf boost to transfer data to the main thread w/o copying.
-      rawImageData: Comlink.transfer(rawImageData, [rawImageData.buffer]),
+      data: Comlink.transfer(data, [data.buffer]),
       time
     };
   };
@@ -19,9 +18,9 @@ function wrapExports({ generate }) {
 async function initHandlers() {
   let [singleThread, multiThread] = await Promise.all([
     (async () => {
-      const singleThread = await import('./pkg/wasm_bindgen_rayon_demo.js');
-      await singleThread.default();
-      return wrapExports(singleThread);
+      // const singleThread = await import('./pkg/wasm_bindgen_rayon_demo.js');
+      // await singleThread.default();
+      // return wrapExports(singleThread);
     })(),
     (async () => {
       // If threads are unsupported in this browser, skip this handler.

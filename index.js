@@ -35,17 +35,13 @@ const timeOutput = document.getElementById('time');
     // Assign onclick handler + enable the button.
     Object.assign(document.getElementById(id), {
       async onclick() {
-        let { data, time } = await handler({
-
-        });
+        let { data, time } = await handler({});
         timeOutput.value = `${time.toFixed(2)} ms`;
         console.log(data)
       },
       disabled: false
     });
   }
-
-  setupBtn('singleThread');
   if (await handlers.supportsThreads) {
     setupBtn('multiThread');
   }

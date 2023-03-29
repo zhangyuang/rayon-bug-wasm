@@ -10,17 +10,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-use hsl::HSL;
-use num_complex::Complex64;
-use rand::Rng;
-use wasm_bindgen::{prelude::*, Clamped};
-use serde::{Deserialize, Serialize, Deserializer};
+
+use wasm_bindgen::{prelude::*};
+use serde::{Deserialize, Serialize};
 use rayon::prelude::*;
+#[cfg(feature = "parallel")]
 pub use wasm_bindgen_rayon::init_thread_pool;
+
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
+macro_rules! console_log {
+($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
 
 
 #[wasm_bindgen]
-pub fn generate(width: u32, height: u32, max_iterations: u32) -> String {
+pub fn generate() -> String {
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Edge {
+        pub et: String, // edge_type
+        pub tn: usize,  // to_node
+        pub ni: String, // name_or_index
+        #[serde(skip_serializing)]
+        pub isw: usize, // is_weak_retainer 0 false 1 true
+        pub isr: usize, // is_retainer 0 false 1 true
+    }
     #[derive(Debug, Serialize, Deserialize, Clone)]
     pub struct Node {
         pub nt: String,   // node_type
@@ -31,7 +52,7 @@ pub fn generate(width: u32, height: u32, max_iterations: u32) -> String {
         pub ec: usize, // edge_count
         // pub trace_node_id: JsValueType,
         pub rs: usize, // retained_size
-        pub edges: Vec<usize>,
+        pub edges: Vec<Edge>,
         pub p: Vec<usize>,
         pub c: String,
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,5 +75,6 @@ pub fn generate(width: u32, height: u32, max_iterations: u32) -> String {
        node
     }).collect();
     let str = serde_json::to_string(&v).unwrap();
+    console_log!("{}", str);
     return str;
 }
